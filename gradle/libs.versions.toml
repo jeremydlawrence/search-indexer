@@ -3,17 +3,25 @@ java = "25"
 spring-boot = "4.0.2"
 dependency-management = "1.1.6"
 junit-bom = "5.10.0"
-spring-data-opensearch = "3.0.1"
+opensearch-java = "3.5.0"
+httpclient5 = "5.5"
+springdoc-openapi = "3.0.1"
+lombok = "1.18.42"
 
 [libraries]
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+springdoc-openapi-starter-webmvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
 
-spring-data-opensearch = { module = "org.opensearch.client:spring-data-opensearch", version.ref = "spring-data-opensearch" }
+opensearch-java = { group = "org.opensearch.client", name = "opensearch-java", version.ref = "opensearch-java" }
+httpclient5 = { group = "org.apache.httpcomponents.client5", name = "httpclient5", version.ref = "httpclient5" }
+
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-bom" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+mockito-core = { module = "org.mockito:mockito-core" }
 
 [bundles]
 test = ["spring-boot-starter-test", "junit-jupiter", "junit-platform-launcher"]

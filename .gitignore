@@ -6,10 +6,7 @@ build/
 .kotlin
 
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -41,3 +38,30 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Windows ###
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+### Logs ###
+*.log
+logs/
+
+### Temporary files ###
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+### Environment files ###
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+### Application specific ###
+application-local.properties
+application-local.yml

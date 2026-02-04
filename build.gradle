@@ -19,12 +19,19 @@ repositories {
 
 dependencies {
     implementation libs.spring.boot.starter.web
-    implementation libs.spring.data.opensearch
+    implementation libs.springdoc.openapi.starter.webmvc
+    implementation libs.opensearch.java
+    implementation libs.httpclient5
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
 
     testImplementation libs.spring.boot.starter.test
     testImplementation platform(libs.junit.bom)
     testImplementation libs.junit.jupiter
+    testImplementation libs.mockito.core
     testRuntimeOnly libs.junit.platform.launcher
+    testCompileOnly libs.lombok
+    testAnnotationProcessor libs.lombok
 }
 
 test {

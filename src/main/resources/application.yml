@@ -5,11 +5,25 @@ spring:
   application:
     name: SearchIndexer
 
+open-search:
+  protocol: http
+  host: localhost
+  port: 9200
+
+indexing:
+  product:
+    index-name: products
+    batch-size: 133
+
 logging:
   level:
     org.example: DEBUG
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] - %msg%n"
 
-opensearch:
-  uris: http://localhost:9200
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
