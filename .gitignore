@@ -43,6 +43,7 @@ bin/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+nul
 
 ### Logs ###
 *.log

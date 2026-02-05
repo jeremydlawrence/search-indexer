@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,11 +33,12 @@ public class IndexController {
         @ApiResponse(responseCode = "200", description = "Product indexing completed successfully"),
         @ApiResponse(responseCode = "500", description = "Error occurred during indexing")
     })
-    public String indexProducts() {
-        logger.info("Starting product indexing process");
+    public String indexProducts(
+            @RequestParam(name = "limit", required = false) Integer limit) {
+        logger.info("Starting product indexing process with limit: {}", limit);
         
         try {
-            final int indexed = productIndexer.indexFromFile("src/main/resources/products-men-min.json");
+            final int indexed = productIndexer.indexFromFile("src/main/resources/products-men-min.json", limit);
             final String message = String.format("Successfully indexed %d products", indexed);
             logger.info(message);
             return message;
