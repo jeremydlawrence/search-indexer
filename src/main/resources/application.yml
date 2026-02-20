@@ -13,7 +13,10 @@ open-search:
 indexing:
   product:
     index-name: products
+    alias: products
     batch-size: 133
+    settings: /products-settings.json
+    mapping: /products-mapping.json
 
 logging:
   level:

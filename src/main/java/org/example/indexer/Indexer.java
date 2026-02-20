@@ -8,5 +8,5 @@ import java.util.List;
 public interface Indexer {
     int indexFromFile(String fileName);
     int indexFromFile(String fileName, @Nullable final Integer limit);
-    int bulkIndexRecords(final List<JsonNode> nodeList);
+    int bulkIndexRecords(final List<JsonNode> nodeList, final String indexName);
 }

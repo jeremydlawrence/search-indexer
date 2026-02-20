@@ -19,6 +19,7 @@ public class Product implements IndexableDocument {
 
     private String title;
     private String description;
+    private String brand;
     private List<String> category;
     
     @JsonDeserialize(using = PriceDeserializer.class)
