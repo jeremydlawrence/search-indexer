@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.example.indexer.ProductIndexer;
+import org.example.indexer.FullProductIndexer;
 import org.example.service.OpenSearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +19,12 @@ public class IndexController {
     private static final Logger logger = LoggerFactory.getLogger(IndexController.class);
 
     private final OpenSearchService openSearchService;
-    private final ProductIndexer productIndexer;
+    private final FullProductIndexer fullProductIndexer;
 
     @Autowired
-    public IndexController(OpenSearchService openSearchService, ProductIndexer productIndexer) {
+    public IndexController(OpenSearchService openSearchService, FullProductIndexer fullProductIndexer) {
         this.openSearchService = openSearchService;
-        this.productIndexer = productIndexer;
+        this.fullProductIndexer = fullProductIndexer;
     }
 
     @GetMapping("/index-products")
@@ -38,7 +38,7 @@ public class IndexController {
         logger.info("Starting product indexing process with limit: {}", limit);
         
         try {
-            final int indexed = productIndexer.indexFromFile("src/main/resources/products-men-min.json", limit);
+            final int indexed = fullProductIndexer.indexFromFile("src/main/resources/products-men-min.json", limit);
             final String message = String.format("Successfully indexed %d products", indexed);
             logger.info(message);
             return message;

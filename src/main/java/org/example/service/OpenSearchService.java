@@ -1,22 +1,32 @@
 package org.example.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.stream.JsonParser;
 import org.example.model.IndexableDocument;
+import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.HealthStatus;
+import org.opensearch.client.opensearch._types.mapping.TypeMapping;
 import org.opensearch.client.opensearch.core.BulkRequest;
 import org.opensearch.client.opensearch.core.BulkResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
+import org.opensearch.client.opensearch.indices.CreateIndexRequest;
+import org.opensearch.client.opensearch.indices.IndexSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class OpenSearchService {
     private static final Logger logger = LoggerFactory.getLogger(OpenSearchService.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final OpenSearchClient client;
 
@@ -72,6 +82,32 @@ public class OpenSearchService {
                     e.getMessage());
             logger.error(message, e);
             throw new RuntimeException(message, e);
+        }
+    }
+
+    public void createIndex(final String indexName, final String settingsPath, final String mappingPath) {
+
+        final JsonpMapper mapper = client._transport().jsonpMapper();
+
+        try (Reader readerSettings = new InputStreamReader(
+                Objects.requireNonNull(this.getClass().getResourceAsStream(settingsPath)));
+             Reader readerMapping = new InputStreamReader(
+                     Objects.requireNonNull(this.getClass().getResourceAsStream(mappingPath)));
+             JsonParser settingsParser = mapper.jsonProvider().createParser(readerSettings);
+             JsonParser mappingParser = mapper.jsonProvider().createParser(readerMapping)
+        ) {
+
+            final IndexSettings settings = IndexSettings._DESERIALIZER.deserialize(settingsParser, mapper);
+            final TypeMapping mapping = TypeMapping._DESERIALIZER.deserialize(mappingParser, mapper);
+
+            final CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder()
+                    .index(indexName)
+                    .settings(settings)
+                    .mappings(mapping)
+                    .build();
+            client.indices().create(createIndexRequest);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
