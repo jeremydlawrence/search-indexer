@@ -1,7 +1,6 @@
 package org.example.service;
 
 import org.example.model.IndexableDocument;
-import org.example.model.Product;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,14 +9,20 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.HealthStatus;
+import org.opensearch.client.opensearch._types.mapping.TypeMapping;
 import org.opensearch.client.opensearch.cluster.HealthResponse;
 import org.opensearch.client.opensearch.cluster.OpenSearchClusterClient;
 import org.opensearch.client.opensearch.core.BulkRequest;
 import org.opensearch.client.opensearch.core.BulkResponse;
+import org.opensearch.client.opensearch.indices.CreateIndexRequest;
+import org.opensearch.client.opensearch.indices.CreateIndexResponse;
+import org.opensearch.client.opensearch.indices.IndexSettings;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -47,21 +52,12 @@ class OpenSearchServiceTest {
     private TestDocument testDoc1;
     private TestDocument testDoc2;
     private List<TestDocument> testDocs;
-    private Product testProduct;
 
     @BeforeEach
     void setUp() {
         testDoc1 = new TestDocument("DOC-001", "Test Document 1");
         testDoc2 = new TestDocument("DOC-002", "Test Document 2");
         testDocs = List.of(testDoc1, testDoc2);
-        
-        // Create a simple test product using reflection or directly use TestDocument
-        testProduct = new Product() {
-            @Override
-            public String getId() {
-                return "PROD-001";
-            }
-        };
     }
 
     @Test
@@ -254,5 +250,117 @@ class OpenSearchServiceTest {
         public String getName() {
             return name;
         }
+    }
+
+    // Test subclass to override protected methods for createIndex testing
+    private static class TestableOpenSearchService extends OpenSearchService {
+        private JsonpMapper mockMapper;
+        private IndexSettings mockSettings;
+        private TypeMapping mockMapping;
+
+        public TestableOpenSearchService(OpenSearchClient client) {
+            super(client);
+        }
+
+        public void setMockMapper(JsonpMapper mockMapper) {
+            this.mockMapper = mockMapper;
+        }
+
+        public void setMockSettings(IndexSettings mockSettings) {
+            this.mockSettings = mockSettings;
+        }
+
+        public void setMockMapping(TypeMapping mockMapping) {
+            this.mockMapping = mockMapping;
+        }
+
+        @Override
+        protected JsonpMapper getJsonpMapper() {
+            return mockMapper;
+        }
+
+        @Override
+        protected IndexSettings deserializeSettings(Reader reader, JsonpMapper mapper) {
+            return mockSettings;
+        }
+
+        @Override
+        protected TypeMapping deserializeMapping(Reader reader, JsonpMapper mapper) {
+            return mockMapping;
+        }
+    }
+
+    @Test
+    void createIndex_WithValidPaths_CreatesIndexSuccessfully() throws IOException {
+        // Arrange
+        JsonpMapper mockMapper = mock(JsonpMapper.class);
+        IndexSettings mockSettings = mock(IndexSettings.class);
+        TypeMapping mockMapping = mock(TypeMapping.class);
+        
+        TestableOpenSearchService testableService = new TestableOpenSearchService(mockClient);
+        testableService.setMockMapper(mockMapper);
+        testableService.setMockSettings(mockSettings);
+        testableService.setMockMapping(mockMapping);
+
+        org.opensearch.client.opensearch.indices.OpenSearchIndicesClient mockIndicesClient = 
+            mock(org.opensearch.client.opensearch.indices.OpenSearchIndicesClient.class);
+        CreateIndexResponse mockCreateIndexResponse = mock(CreateIndexResponse.class);
+
+        when(mockClient.indices()).thenReturn(mockIndicesClient);
+        when(mockIndicesClient.create(any(CreateIndexRequest.class))).thenReturn(mockCreateIndexResponse);
+        when(mockCreateIndexResponse.index()).thenReturn("products-2026.02.27.120000");
+
+        // Act & Assert
+        assertDoesNotThrow(() -> 
+            testableService.createIndex("products-2026.02.27.120000", "/products-settings.json", "/products-mapping.json"));
+
+        verify(mockClient).indices();
+    }
+
+    @Test
+    void createIndex_WithIOException_ThrowsRuntimeException() throws IOException {
+        // Arrange
+        JsonpMapper mockMapper = mock(JsonpMapper.class);
+        IndexSettings mockSettings = mock(IndexSettings.class);
+        TypeMapping mockMapping = mock(TypeMapping.class);
+        
+        TestableOpenSearchService testableService = new TestableOpenSearchService(mockClient);
+        testableService.setMockMapper(mockMapper);
+        testableService.setMockSettings(mockSettings);
+        testableService.setMockMapping(mockMapping);
+
+        org.opensearch.client.opensearch.indices.OpenSearchIndicesClient mockIndicesClient = 
+            mock(org.opensearch.client.opensearch.indices.OpenSearchIndicesClient.class);
+
+        when(mockClient.indices()).thenReturn(mockIndicesClient);
+        when(mockIndicesClient.create(any(CreateIndexRequest.class)))
+            .thenThrow(new IOException("Failed to create index"));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            testableService.createIndex("test-index", "/products-settings.json", "/products-mapping.json"));
+
+        assertTrue(exception.getMessage().contains("Failed to create index"));
+    }
+
+    @Test
+    void createIndex_WithNullSettingsPath_ThrowsNullPointerException() {
+        // Arrange
+        TestableOpenSearchService testableService = new TestableOpenSearchService(mockClient);
+
+        // Act & Assert
+        assertThrows(NullPointerException.class, () ->
+            testableService.createIndex("test-index", "/nonexistent-settings.json", "/products-mapping.json"));
+    }
+
+    @Test
+    void createIndex_WithNullMappingPath_ThrowsNullPointerException() {
+        // Arrange
+        TestableOpenSearchService testableService = new TestableOpenSearchService(mockClient);
+
+        // Act & Assert
+        // settings file exists but mapping doesn't - will fail on second requireNonNull
+        assertThrows(NullPointerException.class, () ->
+            testableService.createIndex("test-index", "/products-settings.json", "/nonexistent-mapping.json"));
     }
 }

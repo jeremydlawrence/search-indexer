@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.config.ProductIndexProperties;
 import org.example.model.Product;
 import org.example.service.OpenSearchService;
+import org.example.util.IndexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class FullProductIndexer implements Indexer {
@@ -43,7 +43,7 @@ public class FullProductIndexer implements Indexer {
     }
 
     protected String init() {
-        final String newIndexName = getIndexName(indexProperties.getAlias());
+        final String newIndexName = IndexUtils.getIndexName(indexProperties.getAlias());
         openSearchService.createIndex(
                 newIndexName,
                 indexProperties.getSettings(),
@@ -52,24 +52,47 @@ public class FullProductIndexer implements Indexer {
         return newIndexName;
     }
 
-    protected static String getIndexName(final String alias) {
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmmss");
-        final String timestamp = LocalDateTime.now().format(formatter);
-        return alias + "-" + timestamp;
+    @Override
+    public void finalizer(final String newIndexName) {
+        // commit docs to index
+        openSearchService.flushIndex(newIndexName);
+
+        // update to post-index settings
+        openSearchService.updateSettings(
+                newIndexName,
+                indexProperties.getReplicas(),
+                indexProperties.getRefreshSeconds());
+
+        // wait for the cluster/index to rebalance
+        final boolean isGreen = openSearchService.waitForGreenStatus(newIndexName, indexProperties.getStatusWaitSeconds());
+
+        // TODO: Implement any other desired checks on the new index before moving the alias
+
+        if (isGreen) {
+            // move active alias to the new index and mark the previous as old
+            final String oldIndexName = openSearchService.moveAlias(newIndexName, indexProperties.getAlias());
+            if (oldIndexName != null) {
+                openSearchService.addAlias(oldIndexName, indexProperties.getOldAlias());
+            }
+        } else {
+            logger.error("Index {} has been created but is not in a good state", newIndexName);
+        }
+
+        // clean up old indexes
+        final Set<String> oldIndexNames = openSearchService.getIndexesByAlias(indexProperties.getOldAlias());
+        oldIndexNames.forEach(indexName -> {
+            if (IndexUtils.shouldDeleteIndex(indexName, indexProperties.getOldIndexKeepDays())) {
+                 openSearchService.deleteIndex(indexName);
+            }
+        });
     }
 
-    public void finalizer() {
-        // TODO: flush table
-        // TODO: update settings
-        // TODO: wait for green status
-        // TODO: move alias
-        // TODO: clean up old tables
-    }
-
+    @Override
     public int indexFromFile(final String filePath) {
         return indexFromFile(filePath, null);
     }
 
+    @Override
     public int indexFromFile(final String filePath, @Nullable final Integer limit) {
         final String newIndexName = init();
 
@@ -103,11 +126,13 @@ public class FullProductIndexer implements Indexer {
             return indexed;
         }
 
-        // TODO: call finalizer
+        // Finalize indexing operation
+        finalizer(newIndexName);
 
         return indexed;
     }
 
+    @Override
     public int bulkIndexRecords(final List<JsonNode> nodeList, final String indexName) {
         final List<Product> products = nodeList.stream()
                 .map(node -> objectMapper.convertValue(node, Product.class))
