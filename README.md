@@ -56,7 +56,11 @@ open-search:
 ./gradlew bootRun
 ```
 
-The application will start on `http://localhost:8080`
+The application will start on `http://localhost:8080`. Or specify a port in `src/main/resources/application.yml`:
+```yaml
+server:
+  port: 8080
+```
 
 ## Configuration
 
@@ -72,8 +76,15 @@ open-search:
 
 indexing:
   product:
-    index-name: products    # OpenSearch index name
-    batch-size: 133         # Batch size for bulk operations
+    alias: products         # Index alias name
+    batch-size: 500         # Batch size for bulk operations
+    replicas: 0             # Index settings number of replicas
+    refresh-seconds: 1      # Index settings refresh interval
+    status-wait-seconds: 30 # Wait for green status in indexing finalizer
+    old-alias: old          # Index alias given to old indexes
+    old-index-keep-days: 1  # Number of days to keep old indexes
+    settings: /products-settings.json # Initial product index settings file
+    mapping: /products-mapping.json # Product index mappings file
 ```
 
 ### Logging Configuration
@@ -139,6 +150,7 @@ The indexer expects JSON lines (one JSON object per line) with the following str
   "description": ["Product description line 1", "Product description line 2"],
   "category": ["Electronics", "Computers", "Laptops"],
   "price": 999.99,
+  "brand": "Acme",
   "image": ["http://example.com/image1.jpg", "http://example.com/image2.jpg"]
 }
 ```
@@ -150,6 +162,7 @@ The indexer expects JSON lines (one JSON object per line) with the following str
 - `description`: Array of descriptions (first one used)
 - `category`: Array of categories (limited to 5)
 - `price`: Product price (supports decimal values)
+- `brand`: Product brand name
 - `image` / `imageURLHighRes`: Array of image URLs
 
 ## Development
@@ -196,6 +209,7 @@ src/
 │   │   ├── model/                          # Data models
 │   │   ├── service/                        # Business logic
 │   │   ├── indexer/                        # Indexing components
+│   │   ├── util/                           # Utility classes
 │   │   └── deserializer/                   # Custom JSON deserializers
 │   └── resources/
 │       └── application.yml                 # Configuration
@@ -210,30 +224,3 @@ The project uses JUnit 5 with parameterized tests. Run all tests:
 ```bash
 ./gradlew test
 ```
-
-Key test areas:
-- Model validation and data transformation
-- JSON deserialization
-- Business logic edge cases
-
-## Performance Considerations
-
-- **Batch Processing**: Products are indexed in configurable batches (default: 133)
-- **Memory Management**: Streaming JSON parser to handle large files
-- **Error Resilience**: Failed bulk operations are logged but don't stop the process
-- **Monitoring**: Detailed logging for debugging and monitoring
-
-## Monitoring and Logging
-
-- Application logs include indexing progress, error details, and performance metrics
-- OpenSearch operation results are logged with timing information
-- Debug logging can be enabled for detailed troubleshooting
-
-## Error Handling
-
-The application includes comprehensive error handling:
-
-- **File I/O Errors**: Graceful handling of missing or corrupted files
-- **JSON Parsing**: Invalid JSON lines are skipped and logged
-- **OpenSearch Errors**: Bulk operation errors are logged with details
-- **Network Issues**: Connection problems to OpenSearch are handled

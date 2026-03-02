@@ -12,14 +12,13 @@ open-search:
 
 indexing:
   product:
-    index-name: products
     alias: products
-    old-alias: old
-    old-index-keep-days: 1
     batch-size: 500
     replicas: 0
     refresh-seconds: 1
     status-wait-seconds: 30
+    old-alias: old
+    old-index-keep-days: 1
     settings: /products-settings.json
     mapping: /products-mapping.json
 

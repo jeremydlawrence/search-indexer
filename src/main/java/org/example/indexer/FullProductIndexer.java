@@ -35,9 +35,7 @@ public class FullProductIndexer implements Indexer {
     @Autowired
     public FullProductIndexer(
             OpenSearchService openSearchService,
-            ProductIndexProperties indexProperties,
-            @Value("${indexing.product.batch-size}") Integer batchSize,
-            @Value("${indexing.product.index-name}") String indexName) {
+            ProductIndexProperties indexProperties) {
         this.openSearchService = openSearchService;
         this.indexProperties = indexProperties;
     }
