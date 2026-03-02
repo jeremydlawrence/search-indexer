@@ -40,10 +40,9 @@ public class Product implements IndexableDocument {
     public void setCategory(List<String> category) {
         if (category == null || category.isEmpty()) {
             this.category = null;
-        } else if (category.size() > 5) {
-            this.category = category.subList(0, 5);
         } else {
-            this.category = category;
+            final int catSize = Math.min(5, category.size());
+            this.category = category.subList(1, catSize);
         }
     }
 }

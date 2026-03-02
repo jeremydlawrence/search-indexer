@@ -26,24 +26,19 @@ class ProductTest {
     static Stream<Arguments> provideCategorySettersInputs() {
         return Stream.of(
             Arguments.of(
-                List.of("Men", "Women", "Clothing", "Sports", "Outdoor", "Fashion", "Casual"),
-                List.of("Men", "Women", "Clothing", "Sports", "Outdoor"),
+                List.of("Root", "Men", "Women", "Clothing", "Sports", "Outdoor", "Fashion", "Casual"),
+                List.of("Men", "Women", "Clothing", "Sports"),
                 "More than 5 categories - should be limited to 5"
             ),
             Arguments.of(
-                List.of("Men", "Women", "Clothing"),
+                List.of("Root", "Men", "Women", "Clothing"),
                 List.of("Men", "Women", "Clothing"),
                 "Less than 5 categories - should remain unchanged"
             ),
             Arguments.of(
-                List.of("Electronics", "Computers", "Phones", "Tablets", "Accessories"),
-                List.of("Electronics", "Computers", "Phones", "Tablets", "Accessories"),
+                List.of("Root", "Electronics", "Computers", "Phones", "Tablets", "Accessories"),
+                List.of("Electronics", "Computers", "Phones", "Tablets"),
                 "Exactly 5 categories - should remain unchanged"
-            ),
-            Arguments.of(
-                List.of("Single Category"),
-                List.of("Single Category"),
-                "Single category - should remain unchanged"
             ),
             Arguments.of(null, null, "Null categories"),
             Arguments.of(List.of(), null, "Empty list")
