@@ -8,6 +8,7 @@
     "title": {
       "type": "text",
       "analyzer": "product_analyzer",
+      "copy_to": "fts",
       "fields": {
         "keyword": {
           "type": "keyword",
@@ -17,11 +18,13 @@
     },
     "description": {
       "type": "text",
+      "copy_to": "fts",
       "analyzer": "product_analyzer"
     },
     "category": {
       "type": "text",
       "analyzer": "product_analyzer",
+      "copy_to": "fts",
       "fields": {
         "keyword": {
           "type": "keyword",
@@ -47,12 +50,17 @@
     },
     "brand": {
       "type": "text",
+      "copy_to": "fts",
       "fields": {
         "keyword": {
           "type": "keyword",
           "ignore_above": 256
         }
       }
+    },
+    "fts": {
+      "type": "text",
+      "analyzer": "product_analyzer"
     }
   }
 }
