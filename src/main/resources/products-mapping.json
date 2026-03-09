@@ -1,4 +1,7 @@
 {
+  "_source": {
+    "excludes": ["fts_embedding"]
+  },
   "properties": {
     "id": {
       "type": "keyword",
@@ -61,6 +64,19 @@
     "fts": {
       "type": "text",
       "analyzer": "product_analyzer"
+    },
+    "fts_embedding": {
+      "type": "knn_vector",
+      "dimension": 384,
+      "method": {
+        "name": "hnsw",
+        "space_type": "cosinesimil",
+        "engine": "lucene"
+      },
+      "parameters": {
+        "m": 24,
+        "ef_construction": 256
+      }
     }
   }
 }

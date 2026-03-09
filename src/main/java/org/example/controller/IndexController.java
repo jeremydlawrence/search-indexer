@@ -38,8 +38,10 @@ public class IndexController {
         logger.info("Starting product indexing process with limit: {}", limit);
         
         try {
+            final long start =  System.currentTimeMillis();
             final int indexed = fullProductIndexer.indexFromFile("src/main/resources/products-men-min.json", limit);
-            final String message = String.format("Successfully indexed %d products", indexed);
+            final long elapsed = System.currentTimeMillis() - start;
+            final String message = String.format("Successfully indexed %d products in %sms", indexed, elapsed);
             logger.info(message);
             return message;
         } catch (Exception e) {

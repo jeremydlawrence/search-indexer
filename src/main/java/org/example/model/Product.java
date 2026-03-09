@@ -21,6 +21,9 @@ public class Product implements IndexableDocument {
     private String description;
     private String brand;
     private List<String> category;
+
+    @JsonProperty("fts_embedding")
+    private List<Float> ftsEmbedding;
     
     @JsonDeserialize(using = PriceDeserializer.class)
     private BigDecimal price;
@@ -44,5 +47,29 @@ public class Product implements IndexableDocument {
             final int catSize = Math.min(5, category.size());
             this.category = category.subList(1, catSize);
         }
+    }
+
+    public String generateFts() {
+        final StringBuilder builder = new StringBuilder();
+
+        if (getTitle() != null) {
+            builder.append(getTitle());
+            builder.append(" ");
+        }
+
+        if (getDescription() != null) {
+            builder.append(getDescription());
+            builder.append(" ");
+        }
+
+        if (getBrand() != null) {
+            builder.append(getBrand());
+            builder.append(" ");
+        }
+
+        if (getCategory() != null && !getCategory().isEmpty()) {
+            builder.append(getCategory().getLast());
+        }
+        return builder.toString();
     }
 }

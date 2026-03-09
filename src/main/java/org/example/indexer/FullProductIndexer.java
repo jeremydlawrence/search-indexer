@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.config.ProductIndexProperties;
 import org.example.model.Product;
+import org.example.service.EmbeddingService;
 import org.example.service.OpenSearchService;
 import org.example.util.IndexUtils;
 import org.slf4j.Logger;
@@ -29,13 +30,16 @@ public class FullProductIndexer implements Indexer {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final JsonFactory jsonFactory = objectMapper.getFactory();
 
+    private final EmbeddingService embeddingService;
     private final OpenSearchService openSearchService;
     private final ProductIndexProperties indexProperties;
 
     @Autowired
     public FullProductIndexer(
-            OpenSearchService openSearchService,
-            ProductIndexProperties indexProperties) {
+            final EmbeddingService embeddingService,
+            final OpenSearchService openSearchService,
+            final ProductIndexProperties indexProperties) {
+        this.embeddingService = embeddingService;
         this.openSearchService = openSearchService;
         this.indexProperties = indexProperties;
     }
@@ -135,6 +139,7 @@ public class FullProductIndexer implements Indexer {
         final List<Product> products = nodeList.stream()
                 .map(node -> objectMapper.convertValue(node, Product.class))
                 .toList();
+        generateEmbeddings(products);
         openSearchService.bulkIndex(products, indexName);
         return nodeList.size();
     }
@@ -145,6 +150,26 @@ public class FullProductIndexer implements Indexer {
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
             return null;
+        }
+    }
+
+    /**
+     * Add text embeddings for the list of products passed in
+     *
+     * @param products The list of products to add embeddings to
+     */
+    private void generateEmbeddings(final List<Product> products) {
+        // Generate text embeddings in bulk
+        final List<String> textList = new ArrayList<>();
+        products.forEach(product -> textList.add(product.generateFts()));
+        final List<List<Float>> embeddingList = embeddingService.getEmbeddings(textList);
+
+        for (int i = 0; i < products.size(); i++) {
+            if (embeddingList.size() > i) {
+                products.get(i).setFtsEmbedding(embeddingList.get(i));
+            } else {
+                logger.error("Product {} has no embeddings", products.get(i).getId());
+            }
         }
     }
 }
