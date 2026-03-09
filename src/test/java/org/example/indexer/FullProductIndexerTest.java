@@ -3,6 +3,7 @@ package org.example.indexer;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.example.config.ProductIndexProperties;
 import org.example.model.Product;
+import org.example.service.EmbeddingService;
 import org.example.service.OpenSearchService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.mockito.quality.Strictness;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -32,6 +34,9 @@ class FullProductIndexerTest {
 
     @Mock
     private OpenSearchService mockOpenSearchService;
+
+    @Mock
+    private EmbeddingService mockEmbeddingService;
 
     @Mock
     private ProductIndexProperties mockIndexProperties;
@@ -156,6 +161,8 @@ class FullProductIndexerTest {
         when(mockOpenSearchService.waitForGreenStatus(anyString(), anyInt())).thenReturn(true);
         when(mockOpenSearchService.moveAlias(anyString(), anyString())).thenReturn(null);
         when(mockOpenSearchService.getIndexesByAlias(anyString())).thenReturn(Set.of());
+        when(mockEmbeddingService.getEmbeddings(anyList()))
+                .thenReturn(List.of(List.of(1f),List.of(2f),List.of(3f),List.of(4f),List.of(5f)));
 
         // Act
         int indexed = fullProductIndexer.indexFromFile(testFile.toString());
@@ -175,6 +182,8 @@ class FullProductIndexerTest {
         when(mockOpenSearchService.waitForGreenStatus(anyString(), anyInt())).thenReturn(true);
         when(mockOpenSearchService.moveAlias(anyString(), anyString())).thenReturn(null);
         when(mockOpenSearchService.getIndexesByAlias(anyString())).thenReturn(Set.of());
+        when(mockEmbeddingService.getEmbeddings(anyList()))
+                .thenReturn(List.of(List.of(1f),List.of(2f),List.of(3f)));
 
         // Act
         int indexed = fullProductIndexer.indexFromFile(testFile.toString(), 3);
@@ -218,6 +227,8 @@ class FullProductIndexerTest {
         when(mockOpenSearchService.waitForGreenStatus(anyString(), anyInt())).thenReturn(true);
         when(mockOpenSearchService.moveAlias(anyString(), anyString())).thenReturn(null);
         when(mockOpenSearchService.getIndexesByAlias(anyString())).thenReturn(Set.of());
+        when(mockEmbeddingService.getEmbeddings(anyList()))
+                .thenReturn(List.of(List.of(1f),List.of(2f),List.of(3f)));
 
         // Act
         int indexed = fullProductIndexer.indexFromFile(testFile.toString());
@@ -237,6 +248,8 @@ class FullProductIndexerTest {
         when(mockOpenSearchService.waitForGreenStatus(anyString(), anyInt())).thenReturn(true);
         when(mockOpenSearchService.moveAlias(anyString(), anyString())).thenReturn(null);
         when(mockOpenSearchService.getIndexesByAlias(anyString())).thenReturn(Set.of());
+        when(mockEmbeddingService.getEmbeddings(anyList()))
+                .thenReturn(List.of(List.of(1f),List.of(2f),List.of(3f),List.of(4f)));
 
         // Act
         int indexed = fullProductIndexer.indexFromFile(testFile.toString());
@@ -261,6 +274,8 @@ class FullProductIndexerTest {
         when(mockOpenSearchService.waitForGreenStatus(anyString(), anyInt())).thenReturn(true);
         when(mockOpenSearchService.moveAlias(anyString(), anyString())).thenReturn(null);
         when(mockOpenSearchService.getIndexesByAlias(anyString())).thenReturn(Set.of());
+        when(mockEmbeddingService.getEmbeddings(anyList()))
+                .thenReturn(List.of(List.of(1f),List.of(2f),List.of(3f),List.of(4f),List.of(5f)));
 
         // Act
         int indexed = fullProductIndexer.indexFromFile(testFile.toString());
@@ -288,6 +303,7 @@ class FullProductIndexerTest {
         when(mockOpenSearchService.waitForGreenStatus(anyString(), anyInt())).thenReturn(true);
         when(mockOpenSearchService.moveAlias(anyString(), anyString())).thenReturn(null);
         when(mockOpenSearchService.getIndexesByAlias(anyString())).thenReturn(Set.of());
+        when(mockEmbeddingService.getEmbeddings(anyList())).thenReturn(List.of(List.of(1f)));
 
         // Act
         int indexed = fullProductIndexer.indexFromFile(testFile.toString());
@@ -310,6 +326,8 @@ class FullProductIndexerTest {
         List<JsonNode> jsonNodes = List.of(node1, node2);
         String indexName = "products-2026.02.23.120000";
 
+        when(mockEmbeddingService.getEmbeddings(anyList())).thenReturn(List.of(List.of(1f),List.of(2f)));
+
         // Act
         int result = fullProductIndexer.bulkIndexRecords(jsonNodes, indexName);
 
@@ -323,6 +341,8 @@ class FullProductIndexerTest {
 
     @Test
     void bulkIndexRecords_WithEmptyList_CallsBulkIndexWithEmptyList() {
+        when(mockEmbeddingService.getEmbeddings(anyList())).thenReturn(new ArrayList<>());
+
         // Act
         int result = fullProductIndexer.bulkIndexRecords(List.of(), "test-index");
 
