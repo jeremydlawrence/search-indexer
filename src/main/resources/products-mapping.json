@@ -11,13 +11,7 @@
     "title": {
       "type": "text",
       "analyzer": "product_analyzer",
-      "copy_to": "fts",
-      "fields": {
-        "keyword": {
-          "type": "keyword",
-          "ignore_above": 256
-        }
-      }
+      "copy_to": "fts"
     },
     "description": {
       "type": "text",
@@ -26,11 +20,11 @@
     },
     "category": {
       "type": "text",
-      "analyzer": "product_analyzer",
       "copy_to": "fts",
       "fields": {
         "keyword": {
           "type": "keyword",
+          "normalizer": "simple_normalizer",
           "ignore_above": 256
         }
       }
@@ -57,6 +51,7 @@
       "fields": {
         "keyword": {
           "type": "keyword",
+          "normalizer": "simple_normalizer",
           "ignore_above": 256
         }
       }

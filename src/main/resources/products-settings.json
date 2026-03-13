@@ -11,6 +11,12 @@
           "tokenizer": "standard",
           "filter": ["lowercase", "asciifolding", "porter_stem"]
         }
+      },
+      "normalizer": {
+        "simple_normalizer": {
+          "type": "custom",
+          "filter": ["lowercase", "asciifolding"]
+        }
       }
     }
   }
