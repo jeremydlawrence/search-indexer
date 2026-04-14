@@ -3,7 +3,7 @@ java = "25"
 spring-boot = "4.0.5"
 dependency-management = "1.1.7"
 opensearch-java = "3.8.0"
-opensearch-core = "3.5.0"
+opensearch-core = "3.6.0"
 httpclient5 = "5.6"
 springdoc-openapi = "3.0.2"
 
